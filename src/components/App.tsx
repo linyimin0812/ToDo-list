@@ -18,21 +18,55 @@ export class App extends React.Component<any, IState>{
     public handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
         // 避免自动刷新操作
         e.preventDefault();
-        this.setState({
-            tasks: [
-                ...this.state.tasks,
-                {
-                    id: this._inMilliseconde(),
-                    value: this.state.currentTask,
-                    createTime: new Date(),
-                    finishTime: null,
-                    isCompleted: false
-                }
-            ],
-            currentTask: ""
-        })
+        if(this.state.currentTask !== ""){
+            this.setState({
+                tasks: [
+                    ...this.state.tasks,
+                    {
+                        id: this._inMilliseconde(),
+                        value: this.state.currentTask,
+                        createTime: new Date(),
+                        finishTime: null,
+                        isCompleted: false
+                    }
+                ],
+                currentTask: ""
+            })
+        }
     }
 
+    public deleteTask(id: number): void {
+        let currentTasks: ITask[] = this.state.tasks.filter((task: ITask) => task.id !== id);
+        this.setState({
+            tasks: currentTasks
+        });
+    }
+
+    public doneTask(id: number): void {
+        let currentTask: ITask[] = this.state.tasks.map((task: ITask) => {
+            if (task.id === id) {
+                task.isCompleted = true;
+                task.finishTime = new Date();
+            }
+            return task;
+        });
+        this.setState({
+            tasks: currentTask
+        });
+    }
+
+    public redoTask(id: number): void {
+        let currentTask: ITask[] = this.state.tasks.map((task: ITask) => {
+            if (task.id === id) {
+                task.isCompleted = false;
+                task.finishTime = null;
+            }
+            return task;
+        });
+        this.setState({
+            tasks: currentTask
+        })
+    }
     public renderUncompletedTask() {
         // 未完成任务
         let uncompletedTask: ITask[] = this.state.tasks.filter((task) => task.isCompleted === false);
@@ -42,8 +76,8 @@ export class App extends React.Component<any, IState>{
                     <div className="col-md-6 text-center">{task.value}</div>
                     <div className="col-md-3 text-center">{this._timeString(task.createTime)}</div>
                     <div className="col-md-3 text-center">
-                        <button className="btn btn-danger">删除</button>
-                        <button className="btn btn-primary">完成</button>
+                        <button className="btn btn-danger" onClick={() => this.deleteTask(task.id)}>删除</button>
+                        <button className="btn btn-primary" onClick={() => this.doneTask(task.id)}>完成</button>
                     </div>
                 </div>
             );
@@ -59,20 +93,20 @@ export class App extends React.Component<any, IState>{
                     <div className="col-md-6 text-center">{task.value}</div>
                     <div className="col-md-3 text-center">{this._timeString(task.finishTime)}</div>
                     <div className="col-md-3 text-center">
-                        <button className="btn btn-danger">删除</button>
-                        <button className="btn btn-primary">重做</button>
+                        <button className="btn btn-danger" onClick={() => this.deleteTask(task.id)}>删除</button>
+                        <button className="btn btn-primary" onClick={() => this.redoTask(task.id)}>重做</button>
                     </div>
                 </div>
             );
         });
     }
     // 获取正在进行任务的数量
-    private _getUncompleteTaskNum(): number{
+    private _getUncompleteTaskNum(): number {
         return this.state.tasks.filter((task: ITask) => task.isCompleted === false).length;
     }
 
     // 获取已经完成任务的数量
-    private _getCompleteTaskNum(): number{
+    private _getCompleteTaskNum(): number {
         return this.state.tasks.length - this._getUncompleteTaskNum();
     }
     private _inMilliseconde(): number {
@@ -80,7 +114,7 @@ export class App extends React.Component<any, IState>{
         return date.getTime();
     }
 
-    private _timeString(date: Date): string{
+    private _timeString(date: Date): string {
         let year: number = date.getFullYear();
         let month: number = date.getMonth() + 1;
         let day: number = date.getDate();
@@ -104,7 +138,11 @@ export class App extends React.Component<any, IState>{
                             />
                         </div>
                         <div className="col-md-3">
-                            <button type="submit" className="btn btn-primary" onClick={(e) => this.handleSubmit(e)}>添加</button>
+                            <button
+                                type="submit"
+                                className="btn btn-primary"
+                                onClick={(e) => { this.handleSubmit(e) }}>添加
+                            </button>
                         </div>
                     </div>
                 </form>
